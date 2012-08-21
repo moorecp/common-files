@@ -5,6 +5,7 @@
 [[ -f /etc/bash_completion ]] && source /etc/bash_completion
 [[ -f $HOME/.bash_completions/git-completion ]] && source $HOME/.bash_completions/git-completion
 
+export CC="/usr/local/bin/gcc-4.2"
 export INPUTRC="$HOME/.inputrc"
 export EDITOR="/usr/bin/emacsclient"
 export GLOBIGNORE='.:..'
@@ -30,7 +31,6 @@ alias sls='screen -ls'
 alias sw='screen -wipe'
 #alias cfup='((svn info &> /dev/null && svn up) || (echo; echo -n "svn repository not detected, use tbz2? [Y,n]: "; read y; [ "$y" == "" -o "$y" == "y" -o "$y" == "Y" ] && (wget -O - http://cf.telaranrhiod.com/files/common/common_files.tbz2 | tar -xjov --no-same-permissions ./))); exec bash'
 alias bgup='(wget -O - http://cf.telaranrhiod.com/files/common/backgrounds.tbz2 | tar -xjov --no-same-permissions -C ~/.fluxbox/backgrounds/)'
-alias pgrep='pgrep -iL'
 which md5 &> /dev/null || alias md5='md5sum'
 alias g='git'
 alias g{='git stash'
@@ -58,7 +58,8 @@ alias gbr="git branch"
 complete -o default -o nospace -F _git_branch gbr
 alias ga="git add"
 complete -o default -o nospace -F _git_add ga
-
+# Bundle All The Things
+alias batt="bundle install --path vendor/bundle/ --binstubs --verbose"
 alias cuwork="cucumber ./features -t @shouldwork"
 alias cuwip="cucumber ./features -t @wip"
 alias cufail="cucumber ./features -t @shouldfail"
