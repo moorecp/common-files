@@ -28,7 +28,7 @@ require 'ap'
 require 'map_by_method'
 require 'what_methods'
 # For printing time in session
-require 'duration'
+require 'chronic_duration'
 # For coloration
 require 'wirble'
 
@@ -77,4 +77,4 @@ class Object
 end
 
 # Prints how long the session has been open upon exit
-at_exit { puts Duration.new(Time.now - IRB_START_TIME) }
+at_exit { puts ChronicDuration.output(Time.now - IRB_START_TIME) }
