@@ -54,6 +54,7 @@
 				("\\.haml$" . haml-mode)
 				("\\.feature$" . feature-mode)
 				("\\.org$" . org-mode)
+        ("\\.coffee$" . coffee-mode)
           ) auto-mode-alist))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -272,9 +273,18 @@
 		      (local-set-key (kbd "<tab>") 'indent-according-to-mode)
 		      )))
 
+(defun coffee-custom ()
+  "coffee-mode-hook"
+ (set (make-local-variable 'tab-width) 2))
+
+(add-hook 'coffee-mode-hook
+  '(lambda() (coffee-custom)))
 
 (load-file "~/.emacs.d/lisp/php-mode.el")
 (require 'php-mode)
+
+(load-file "~/.emacs.d/coffee/coffee-mode.el")
+(require 'coffee-mode)
 
 (load-file "~/.emacs.d/haml/haml-mode.el")
 (require 'haml-mode)
