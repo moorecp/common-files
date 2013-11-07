@@ -27,6 +27,7 @@
  '(php-include-in-parenthesis nil)
  '(php-stutter-mode nil)
  '(php-word-completion-in-minibuffer nil)
+ '(rails-ruby-command "/Users/moorecp/.rbenv/shims/ruby")
  '(show-paren-mode t nil (paren))
  '(transient-mark-mode t))
 (custom-set-faces
@@ -35,13 +36,13 @@
   ;; Your init file should contain only one such instance.
   ;; If there is more than one, they won't work right.
  )
-
+(setq vc-handled-backends nil)
 (load-file "~/.emacs.d/cf-general.el")
 
 (put 'upcase-region 'disabled nil)
 
 (setq show-trailing-whitespace t)
-(cua-mode)
+; (cua-mode)
 
 (require 'color-theme)
 (color-theme-initialize)
