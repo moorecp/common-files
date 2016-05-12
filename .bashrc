@@ -237,15 +237,6 @@ export HISTCONTROL=ignoreboth
 #save history with each command
 export PROMPT_COMMAND='[[ "`set | grep -E \"cf_prompt_command \(\)\"`" != "" ]] && cf_prompt_command'
 
-if ! shopt -q login_shell; then
-    if [ -f /usr/bin/keychain ]; then
-	[ -f ~/.ssh/id_dsa ] && /usr/bin/keychain --noask ~/.ssh/id_dsa &> /dev/null
-	[ -f ~/.ssh/id_rsa ] && /usr/bin/keychain --noask ~/.ssh/id_rsa &> /dev/null
-    fi
-    [ -f ~/.keychain/$HOSTNAME-sh ] && source ~/.keychain/$HOSTNAME-sh > /dev/null &> /dev/null
-fi
-
-
 # load any OS specific changes we've made
 [ -f ~/.common_files/cf.`uname -s`.conf ] && . ~/.common_files/cf.`uname -s`.conf
 
