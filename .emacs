@@ -110,7 +110,7 @@
 (add-to-list 'el-get-recipe-path "~/.emacs.d/el-get-user/recipes")
 (setq el-get-user-package-directory "~/.emacs.d/el-get-init-files/")
 (setq my-packages
-      '(cl-lib coffee-mode color-theme company-mode dash el-get epl f flycheck haml-mode helm helm-company helm-projectile inf-ruby inflections let-alist package pkg-info projectile projectile-rails rake rbenv robe-mode rubocop s sass-mode scss-mode seq yaml-mode))
+      '(cl-lib coffee-mode color-theme company-mode dash el-get emacs-async epl exec-path-from-shell f flycheck haml-mode helm helm-company helm-projectile inf-ruby inflections let-alist magit package pkg-info projectile projectile-rails rake rbenv robe-mode rubocop s sass-mode scss-mode seq with-editor yaml-mode))
 (el-get 'sync my-packages)
 
 (mapc 'load (file-expand-wildcards "~/.emacs.d/autoload/*.el"))
