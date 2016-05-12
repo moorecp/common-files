@@ -80,82 +80,6 @@ alias be='bundle exec'
 
 export CF_TARBALL_BACKUP="true"
 export CF_BACKUP_COUNT=5
-cfup() {
-    if [[ "$PWD" != "$HOME" ]]; then
-	#you aren't in your home directory, prompt for continuing
-	echo
-	echo "You do not appear to be in your home directory"
-	echo -n "Do you wish to continue? [Y,n]: "
-	read
-	if ! [[ "$REPLY" == "" || "$REPLY" == "y" || "$REPLY" == "Y" ]]; then
-	    return 1
-	fi
-    fi
-    if svn info &> /dev/null; then
-	#is repos
-	if [[ "`svn info | grep '/svn/home/common_files'`" == "" ]]; then
-	#repos isn't common files
-	    echo
-	    echo "The repository in the current directory does not appear to be the common files."
-	    echo -n "Do you wish to use the tarball? [Y,n]: "
-	    read
-	    if ! [[ "$REPLY" == "" || "$REPLY" == "y" || "$REPLY" == "Y" ]]; then
-		return 3
-	    fi
-	else
-	    svn up
-	    if [[ "$?" != "0" || "`svn stat | grep '^C'`" != "" ]]; then
-		echo
-		echo "Error updating repository, check above for more info."
-		return 4
-	    fi
-	    return 0
-	fi
-    else
-    #curr dir isn't repos
-	echo
-	echo -n "svn repository not detected, use tbz2? [Y,n]: "
-	read y
-	if ! [[ "$y" == "" || "$y" == "y" || "$y" == "Y" ]]; then
-	    return 5
-	fi
-    fi
-
-    if [[ "$CF_TARBALL_BACKUP" == "true" ]]; then
-	TEMPDIR=`mktemp -d -t cf_backup_tmp.XXXXXXXXXXXXXX` &&
-	wget -O - http://cf.telaranrhiod.com/files/common/common_files.tbz2 | tar -xjov --no-same-permissions -C $TEMPDIR ./ &&
-	date="`date '+%Y-%m-%d--%H-%M-%S'`" &&
-  version=`echo $CF_RUNNING_VERSION | awk '{print $1}'` &&
-	backup_path="$HOME/.common_files/backups/${date}--r${version}/" &&
-	mkdir -p $backup_path &&
-	echo "moving new files into place and backing up old files to $backup_path" &&
-	rsync -av -b --backup-dir=$backup_path $TEMPDIR/ ./ &&
-	rm -rv $TEMPDIR &&
-#	cp --parents `find | grep '.*.cf.bkp$' | grep -v '\.common_files/backups/'` $backup_path &&
-#	rm -rf `find | grep '.*.cf.bkp$' | grep -v '\.common_files/backups/'` &&
-
-	if [[ "$CF_BACKUP_COUNT" != "" && "$CF_BACKUP_COUNT" -ge "0" ]] &> /dev/null; then
-	    old_backups="`ls $HOME/.common_files/backups/ | sort | head -n -${CF_BACKUP_COUNT}`"
-	    if [[ "$old_backups" != "" ]]; then
-		echo "Removing old backups ($old_backups) due to a CF_BACKUP_COUNT of $CF_BACKUP_COUNT"
-		(cd $HOME/.common_files/backups/ && rm -rf $old_backups)
-	    fi
-	fi
-
-    else
-	wget -O - http://cf.telaranrhiod.com/files/common/common_files.tbz2 | tar -xjov --no-same-permissions ./
-    fi
-
-    if [[ "$?" != "0" ]]; then
-	echo
-	echo "Error downloading or extracting tar, check above for more info."
-	return 2
-    fi
-
-    echo
-    echo "Performing 'exec bash' to pick up updates."
-    exec bash
-}
 
 sS() {
     if [[ "$2" != "" ]]; then
@@ -190,7 +114,7 @@ pssh() {
 }
 tssh() {
     set_temp_known_host $*
-    ssh -o "UserKnownHostsFile=${known_hosts_temp_file}" $*   
+    ssh -o "UserKnownHostsFile=${known_hosts_temp_file}" $*
 }
 
 vncvia() {
@@ -209,87 +133,6 @@ alias cd='pushd -n $PWD &> /dev/null; cd'
 # }
 # alias cd='cf_cd' # put this below cf_cd so when cf_cd is read 'cd' isn't expanded making it recursive
 
-#min seconds between notifications of new common files.
-export CF_TIME_BETWEEN_NOTIFICATIONS=86400
-last_notified_date_path="$HOME/.common_files/.out_of_date_last_notified_date"
-notification_message_path="$HOME/.common_files/.out_of_date_notification_message"
-
-cf_date_check_notify() {
-#if it isn't the same day as the last time we told you and
-#we found that you were out of date last time you logged in we're going to tell you about it now.
-    last_date=0
-    [ -f $last_notified_date_path ] && last_date=`cat $last_notified_date_path`
-    let "new_date = $last_date + $CF_TIME_BETWEEN_NOTIFICATIONS"
-    if [[ "$new_date" -lt "`date '+%s'`" ]]; then
-	[ -f $notification_message_path ] && cat $notification_message_path && echo "`date '+%s'`" > $last_notified_date_path
-    fi
-}
-
-cf_get_latest_local_version() {
-    #get your current revision number
-    if which git &> /dev/null; then
-	      my_rev=`(git --git-dir $HOME log -1 --pretty=format:"%H %ad") 2> /dev/null`
-    fi	
-	  if [[ "$my_rev" == "" ]]; then
-	      #couldn't get version from svn so we'll try .common_files/latest_revision.txt
-	      my_rev=`cat "$HOME/.common_files/.latest_revision" 2> /dev/null`
-	  fi
-	  if [[ "$my_rev" == "" ]]; then
-	      return 1
-	  fi
-    
-	  CF_LOCAL_LATEST_VERSION=$my_rev
-    
-	  return 0
-}
-
-cf_get_latest_local_version
-CF_RUNNING_VERSION="$CF_LOCAL_LATEST_VERSION"
-CF_LOCAL_LATEST_VERSION="$CF_RUNNING_VERSION";
-
-cf_check_for_updates() {
-#first paren executes rest in subshell so we don't see the output from the job finishing
-#second peren and its & lump this block together and execute it in the background to it happens asynchronously and we don't hold up shell startup
-((
-#checking to see if you're up to date
-#make sure you have curl and svn
-        if which git curl &> /dev/null; then
-            #get the latest revision number, this should just be an integer.
-            latest=`curl -sL http://cf.telaranrhiod.com/files/common/latest_revision.txt`
-            #make sure curl returned successfully
-            if [[ "$?" == "0" ]]; then
-                #	my_rev="`cf_get_latest_local_version`"
-                cf_get_latest_local_version
-	              my_rev=$CF_LOCAL_LATEST_VERSION
-              	#check if you're up to date
-                latest_hash=`echo $latest | awk '{print $1}'`
-                my_hash=`echo $my_rev | awk '{print $1}'`
-	              if [[ "$latest_hash" != "$my_hash" ]]; then 
-              	    #if not, create the .out_of_date file with the appropriate message so next time you start a terminal we can alert you.
-	                  echo "Not on latest revision of common_files.  Latest: $latest, yours: $my_rev" > $notification_message_path
-	              else
-              	    #if you're up to date we don't need this file
-	                  [ -f $notification_message_path ] && rm $notification_message_path
-	              fi
-            fi
-        fi
-) &)
-}
-
-#min seconds between checking for new common files.
-export CF_TIME_BETWEEN_UPDATES=86400
-
-cf_date_check_for_updates() {
-    last_checked_for_updates_date_path="$HOME/.common_files/.last_checked_date"
-    last_date=0
-    [ -f $last_checked_for_updates_date_path ] && last_date=`cat $last_checked_for_updates_date_path`
-    let "new_date = $last_date + $CF_TIME_BETWEEN_UPDATES"
-    if [[ "$new_date" -lt "`date '+%s'`" ]]; then
-	cf_check_for_updates
-	echo "`date '+%s'`" > $last_checked_for_updates_date_path
-    fi
-}
-
 cf_prompt_command() {
 #    old_hist_time_format=$HISTTIMEFORMAT
 #    HISTTIMEFORMAT='%s  '
@@ -305,8 +148,6 @@ cf_prompt_command() {
 #    history 10
     history -a
 #    history 10
-    ((cf_date_check_for_updates) &)
-    cf_date_check_notify
     [[ "$CF_RUNNING_VERSION" != "$CF_LOCAL_LATEST_VERSION" ]] && exec bash
 #    cf_long_running_task_check
     [[ "`declare -f cf_user_prompt_hook`" != "" ]] && cf_user_prompt_hook
