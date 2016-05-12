@@ -1,0 +1,6 @@
+(add-to-list 'load-path "~/.emacs.d/el-get/helm")
+(require 'helm-config)
+(global-set-key (kbd "C-c h") 'helm-command-prefix)
+(global-unset-key (kbd "C-x c"))
+(global-set-key (kbd "M-x") 'helm-M-x)
+(helm-mode 1)

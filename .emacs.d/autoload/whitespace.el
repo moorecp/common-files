@@ -1,0 +1,6 @@
+(setq whitespace-style '(face tabs trailing))
+(add-hook 'coffee-mode-hook 'whitespace-mode)
+(add-hook 'haml-mode-hook   'whitespace-mode)
+(add-hook 'prog-mode-hook   'whitespace-mode)
+(add-hook 'sass-mode-hook   'whitespace-mode)
+(add-hook 'scss-mode-hook   'whitespace-mode)
