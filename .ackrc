@@ -1,6 +1,7 @@
 --color
 --type-set=haml=.haml
 --type-set=sass=.sass
+--type-set=scss=.scss
 --type-set=cuke=.feature
 --type-set=conf=.conf
 --type-set=coffee=.coffee
